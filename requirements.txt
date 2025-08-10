@@ -1,0 +1,7 @@
+psycopg2-binary
+stanza
+openai
+langdetect
+python-docx
+gradio
+docx2txt

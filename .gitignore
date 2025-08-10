@@ -1,0 +1,104 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+.conda
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration files
+config.ini
+.env.local
+.env.production
+
+# Output files
+output/
+results/
+translations/
+*.docx
+*.doc
+*.csv
+*.xlsx
+cache
+*.pdf
+# Cache files
+.cache/
+*.cache
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+
+
+# Node modules (if any)
+node_modules/
+
+# Machine learning models
+models/
+*.pkl
+*.model
+*.bin
+
+# API keys and secrets
+secrets.json
+api_keys.txt
