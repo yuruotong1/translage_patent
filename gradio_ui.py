@@ -6,6 +6,7 @@ import shutil
 import torch
 from word_translation_service import WordTranslationService
 from prompt import api_key, base_url
+import logging
 
 class GradioTranslationApp:
     def __init__(self):
@@ -13,49 +14,46 @@ class GradioTranslationApp:
         
     async def translate_document(self, file_path, source_lang, target_lang, translation_type):
         """Translate document and return output file paths"""
-        try:
-            # Create temporary directory for outputs
-            temp_dir = tempfile.mkdtemp()
+        # Create temporary directory for outputs
+        temp_dir = tempfile.mkdtemp()
+        
+        # Get original filename without extension
+        original_name = os.path.splitext(os.path.basename(file_path))[0]
+        
+        # Define output paths
+        contrast_output = os.path.join(temp_dir, f"{original_name}_contrast.docx")
+        translation_only_output = os.path.join(temp_dir, f"{original_name}_translation.docx")
+        
+        # Check file extension and process accordingly
+        file_ext = os.path.splitext(file_path)[1].lower()
+        
+        if file_ext == '.docx':
+            # Process DOCX file
+            results = await self.translator.process_document_dual_output(
+                file_path, 
+                contrast_output, 
+                translation_only_output,
+                source_lang, 
+                target_lang
+            )
+        elif file_ext == '.doc':
+            # Process DOC file
+            results = await self.translator.extract_and_translate_doc(
+                file_path,
+                contrast_output,
+                translation_only_output,
+                source_lang,
+                target_lang
+            )
+        else:
+            raise ValueError("Unsupported file format. Please upload a .doc or .docx file.")
+        
+        # Return appropriate file based on translation type
+        if translation_type == "Contrast (Original + Translation)":
+            return contrast_output, f"Translation completed! {len(results)} paragraphs processed."
+        else:
+            return translation_only_output, f"Translation completed! {len(results)} paragraphs processed."
             
-            # Get original filename without extension
-            original_name = os.path.splitext(os.path.basename(file_path))[0]
-            
-            # Define output paths
-            contrast_output = os.path.join(temp_dir, f"{original_name}_contrast.docx")
-            translation_only_output = os.path.join(temp_dir, f"{original_name}_translation.docx")
-            
-            # Check file extension and process accordingly
-            file_ext = os.path.splitext(file_path)[1].lower()
-            
-            if file_ext == '.docx':
-                # Process DOCX file
-                results = await self.translator.process_document_dual_output(
-                    file_path, 
-                    contrast_output, 
-                    translation_only_output,
-                    source_lang, 
-                    target_lang
-                )
-            elif file_ext == '.doc':
-                # Process DOC file
-                results = await self.translator.extract_and_translate_doc(
-                    file_path,
-                    contrast_output,
-                    translation_only_output,
-                    source_lang,
-                    target_lang
-                )
-            else:
-                raise ValueError("Unsupported file format. Please upload a .doc or .docx file.")
-            
-            # Return appropriate file based on translation type
-            if translation_type == "Contrast (Original + Translation)":
-                return contrast_output, f"Translation completed! {len(results)} paragraphs processed."
-            else:
-                return translation_only_output, f"Translation completed! {len(results)} paragraphs processed."
-                
-        except Exception as e:
-            return None, f"Translation failed: {str(e)}"
     
     def sync_translate_document(self, file, source_lang, target_lang, translation_type):
         """Synchronous wrapper for the async translation function"""
@@ -77,6 +75,8 @@ class GradioTranslationApp:
                 return None, message
                 
         except Exception as e:
+            import traceback
+            logging.error(f"Error: {traceback.format_exc()}")
             return None, f"Error: {str(e)}"
 
 def create_interface():
@@ -85,9 +85,9 @@ def create_interface():
     
     # Define language options
     language_options = [
-        "English",
-        "Chinese",
-        "Thai"
+        "english",
+        "chinese",
+        "thai"
     ]
     
     # Define translation type options

@@ -1,21 +1,5 @@
-api_key = "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"
+api_key = "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"
 base_url = "https://openrouter.ai/api/v1"
-
-translation_prompt = """
-请将以下 {src_lang} 语句翻译成 {tgt_lang}。
-
-要求如下：
-- 只输出**一种**最准确、最自然的翻译结果；
-- 不要列出多个可能含义；
-- 不要进行解释或分析；
-- 输出内容要简洁、清晰，表达明确，不含歧义。
-
-待翻译内容：
-"{text}"
-
-输出：
-
-"""
 
 
 term_prompt = """
@@ -35,22 +19,31 @@ term_prompt = """
 输入："我们在5G网络下测试马桶防漏水干湿分离机构的可靠性，并更新技术服务合同。"
 输出：
 [
-{
+{{
 "source_text": "5G网络",
 "target_text": "5G network",
-},
-{
+}},
+{{
 "source_text": "马桶防漏水干湿分离机构",
 "target_text": "dry-wet separation mechanism",
-},
-{
+}},
+{{
 "source_text": "技术服务合同",
 "target_text": "technical service contract",
-},
-{
+}},
+{{
 "source_text": "可靠性",
 "target_text": "reliability",
-}
+}}
 ]
 
+"""
+
+
+translation_prompt = """
+参考以下术语翻译：
+
+{ref_text}
+
+请将用户给出的文本翻译为{target_language}，只输出译文，不要输出任何其他内容：
 """

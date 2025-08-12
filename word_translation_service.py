@@ -312,11 +312,10 @@ class WordTranslationService:
                     inserted_para = self.insert_translation_simple(original_para, translated_text)
                     if inserted_para:
                         # 获取术语的source_type信息
-                        from find_and_store import find_text_in_db
+                        from extraction_term import find_text_in_db
                         from translation import TranslationService
                         translation_service = TranslationService("", "")
-                        src_lang_code = translation_service.LANGUAGE_MAP.get(source_language.lower(), 'en')
-                        _, source_types = find_text_in_db(orig, src_lang=src_lang_code)
+                        _, source_types = find_text_in_db(orig, src_lang=source_language)
                         
                         # 需要高亮的原文术语（仅用户上传的）
                         user_terms = [term for term in references.keys() if source_types.get(term) == 'usr']
@@ -341,11 +340,10 @@ class WordTranslationService:
                         run.font.color.rgb = docx.shared.RGBColor(255, 0, 0)
                     
                     # 获取术语的source_type信息
-                    from find_and_store import find_text_in_db
+                    from extraction_term import find_text_in_db
                     from translation import TranslationService
                     translation_service = TranslationService("", "")
-                    src_lang_code = translation_service.LANGUAGE_MAP.get(source_language.lower(), 'en')
-                    _, source_types = find_text_in_db(orig, src_lang=src_lang_code)
+                    _, source_types = find_text_in_db(orig, src_lang=source_language)
                     
                     # 高亮原文单元格中的术语（仅用户上传的）
                     if para_idx < len(cell.paragraphs):

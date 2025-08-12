@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create cache directory for stanza models
+# Create cache directory
 RUN mkdir -p /app/cache
 
 # Expose port

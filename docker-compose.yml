@@ -11,13 +11,11 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
       - OMP_NUM_THREADS=4
-      - STANZA_RESOURCES_DIR=/root/stanza_resources
+# Stanza resources removed - using Gemini 2.0 instead
       - ENV=production
     volumes:
-      # Mount cache directory for stanza models
+      # Mount cache directory (stanza models no longer needed)
       - ./cache:/app/cache
-      # Mount stanza models from host machine
-      - /mnt/c/Users/admin/stanza_resources:/root/stanza_resources
       # Mount for temporary files
       - translation_temp:/tmp
     gpus: all
