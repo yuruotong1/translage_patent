@@ -4,7 +4,7 @@ import langdetect
 import json
 import asyncio
 from openai import AsyncOpenAI
-from prompt import translation_prompt, term_prompt, api_key, base_url
+from prompt import translation_prompt, term_prompt, api_key, base_url, model
 import concurrent.futures
 import hashlib
 import os
@@ -33,25 +33,35 @@ TERM_EXTRACTION_SCHEMA = {
     }
 }
 
-async def extract_terms_with_gemini(text: str, tgt_lang: str) -> list[tuple[str, str]]:
-    """Extract and translate terms using Gemini 2.0 structured output"""
-    try:
-        client = AsyncOpenAI(api_key=api_key, base_url=base_url)    
-        response = await client.chat.completions.create(
-            model="google/gemini-2.0-flash-001",
-            messages=[
-                {"role": "system", "content": term_prompt.format(tgt_lang=tgt_lang)},
-                {"role": "user", "content": text}
-            ],
-            response_format=TERM_EXTRACTION_SCHEMA
-        )
-        
-        result = json.loads(response.choices[0].message.content)
-        return result
-    except Exception as e:
-        import traceback
-        logging.error(f"Full traceback: {traceback.format_exc()}")
-        return []
+async def extract_terms_with_gemini(text: str, tgt_lang: str, max_retries: int = 3) -> list[tuple[str, str]]:
+    """Extract and translate terms using Gemini 2.0 structured output with retry mechanism"""
+    client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+    
+    for attempt in range(max_retries):
+        try:
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": term_prompt.format(tgt_lang=tgt_lang)},
+                    {"role": "user", "content": text}
+                ],
+                response_format=TERM_EXTRACTION_SCHEMA
+            )
+            
+            result = json.loads(response.choices[0].message.content)
+            return result
+        except Exception as e:
+            import traceback
+            logging.error(f"Attempt {attempt + 1}/{max_retries} failed: {e}")
+            logging.error(f"Full traceback: {traceback.format_exc()}")
+            
+            if attempt == max_retries - 1:
+                # Last attempt failed, return empty list
+                logging.error(f"All {max_retries} attempts failed for extract_terms_with_gemini")
+                return []
+            
+            # Wait before retry (exponential backoff)
+            await asyncio.sleep(2 ** attempt)
     
 
 

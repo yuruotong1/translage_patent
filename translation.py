@@ -10,7 +10,7 @@ from functools import partial
 from concurrent.futures import ProcessPoolExecutor
 import json, hashlib, os, logging
 from postgre_sql import increment_terms_count
-from prompt import translation_prompt
+from prompt import translation_prompt, model
 logger = logging.getLogger(__name__)
 
 class TranslationService:
@@ -49,25 +49,40 @@ class TranslationService:
                 ref_text="[]",
                 target_language=target_language
             )
+        logger.info(f"prompt: {prompt}")
+        
         for attempt in range(max_retries):
-            response = await self.client.chat.completions.create(
-                model="google/gemini-2.0-flash-001",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": text
-                    }
-                ],
-                temperature=0.3
-            )
-          
-            translated_text = response.choices[0].message.content.strip()
-            print("translated_text: ",translated_text)
-            return translated_text, references
+            try:
+                response = await self.client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": prompt
+                        },
+                        {
+                            "role": "user",
+                            "content": text
+                        }
+                    ],
+                    temperature=0.3
+                )
+              
+                translated_text = response.choices[0].message.content.strip()
+                print("translated_text: ",translated_text)
+                return translated_text, references
+            except Exception as e:
+                import traceback
+                logger.error(f"Translation attempt {attempt + 1}/{max_retries} failed: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                
+                if attempt == max_retries - 1:
+                    # Last attempt failed, return original text
+                    logger.error(f"All {max_retries} attempts failed for translation, returning original text")
+                    return text, references
+                
+                # Wait before retry (exponential backoff)
+                await asyncio.sleep(2 ** attempt)
             
     
     async def translate_texts_parallel(self, texts: List[str], source_language: str, target_language: str) -> List[tuple[str, dict]]:
@@ -77,7 +92,7 @@ class TranslationService:
         translated_texts: List[tuple[str, dict]] = [("", {})] * len(texts)
         # Preprocess texts in parallel using processes to extract and store words
         sem = asyncio.Semaphore(self.MAX_WORKERS)
-        # 建立术语库z
+        # 建立术语库
         async def sem_task(index,task):
             async with sem:
                 logger.info(f"Extracting terms {index + 1}/{len(texts)}")

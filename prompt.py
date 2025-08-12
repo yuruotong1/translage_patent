@@ -1,9 +1,14 @@
-api_key = "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"
-base_url = "https://openrouter.ai/api/v1"
+# api_key = "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"
+# base_url = "https://openrouter.ai/api/v1"
+api_key = "sk-ZB24q2CI870KOkrGEb2a42DdF5Bc417c996337F6Ad89013c"
+base_url = "http://cn.api.openai-next.com/v1"
+model = "gemini-2.0-flash-exp"
 
 
 term_prompt = """
 你现在扮演“术语抽取器”。只做名词级术语抽取与翻译，不要解释。对我提供的文本进行分词与术语识别，抽取名词、名词短语、专有名词、缩略词/首字母词（如“5G”“API”“NLP”），并翻译为{tgt_lang}。
+
+
 如果文本中没有可用术语，返回空列表。
 
 ## 任务要求
@@ -13,29 +18,7 @@ term_prompt = """
 4. 专名与品牌：人名、地名、机构名、产品名保留原文；若存在行业通行译名，在 translation 中给出该通行译名，并在 notes 标注“通行译名”。
 5. 术语优先级：领域相关 > 通用词。遇到边界不清时，宁可多收，不要漏收。
 6. 输出格式：只输出 JSON，不要额外文本、不要 Markdown、不要代码块围栏。
-
-## 案例
-
-输入："我们在5G网络下测试马桶防漏水干湿分离机构的可靠性，并更新技术服务合同。"
-输出：
-[
-{{
-"source_text": "5G网络",
-"target_text": "5G network",
-}},
-{{
-"source_text": "马桶防漏水干湿分离机构",
-"target_text": "dry-wet separation mechanism",
-}},
-{{
-"source_text": "技术服务合同",
-"target_text": "technical service contract",
-}},
-{{
-"source_text": "可靠性",
-"target_text": "reliability",
-}}
-]
+7. 目标语言为{tgt_lang}，不要翻译成其他语言了。
 
 """
 
