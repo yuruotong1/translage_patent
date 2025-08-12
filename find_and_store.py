@@ -1,4 +1,4 @@
-import stanza
+import c
 import openai
 from postgre_sql import check_duplicate, insert_translation, get_translation
 import langdetect
@@ -80,7 +80,7 @@ async def process_text(text: str, src_lang: str, tgt_lang: str) -> None:
     seen = set()
     for sentence in doc.sentences:
         for word in sentence.words:
-            if word.upos == 'NOUN' and word.text not in seen and not check_duplicate(word.text, src_lang):
+            if word.upos == 'NOUN' and word.text not in seen and not check_duplicate(word.text, src_lang, tgt_lang):
                 seen.add(word.text)
                 tasks.append(translate_and_store(word.text, src_lang=src_lang, tgt_lang=tgt_lang))
     # 控制并发量为100
@@ -136,7 +136,7 @@ def sync_process_text(text: str, src_lang: str, tgt_lang: str) -> tuple[list, st
     seen = set()
     for sentence in doc.sentences:
         for word in sentence.words:
-            if word.upos == 'NOUN' and word.text not in seen and not check_duplicate(word.text, src_lang):
+            if word.upos == 'NOUN' and word.text not in seen and not check_duplicate(word.text, src_lang, tgt_lang):
                 seen.add(word.text)
                 tasks.append(word.text)
 
@@ -159,8 +159,7 @@ def find_text_in_db(text: str, src_lang: str = 'en', tgt_lang: str = 'zh') -> tu
     """
     from postgre_sql import find_terms_in_text
     
-    # Use find_terms_in_text to directly search for terms in the text
-    found_terms = find_terms_in_text(text, src_lang)
+    found_terms = find_terms_in_text(text, src_lang, tgt_lang)
     
     # Convert the result to dictionary formats
     translations = {}

@@ -13,10 +13,10 @@ def get_connection():
     )
 
 # Function to check if a source text already exists
-def check_duplicate(source_text, source_lang='en'):
+def check_duplicate(source_text, source_lang='en', target_lang='zh'):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id FROM glossary WHERE source_text = %s AND source_lang = %s", (source_text, source_lang))
+    cur.execute("SELECT id FROM glossary WHERE source_text = %s AND source_lang = %s AND target_lang = %s", (source_text, source_lang, target_lang))
     result = cur.fetchone()
     cur.close()
     conn.close()
@@ -115,10 +115,10 @@ def increment_terms_count(tokens: list[str], source_lang: str, target_lang: str)
         cur.close()
         conn.close()
 
-def find_terms_in_text(text: str, source_lang: str = 'en'):
+def find_terms_in_text(text: str, source_lang: str = 'en', target_lang: str = 'zh'):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT source_text, target_text, source_type FROM glossary WHERE POSITION(source_text IN %s) > 0 AND source_lang = %s", (text, source_lang))
+    cur.execute("SELECT source_text, target_text, source_type FROM glossary WHERE POSITION(source_text IN %s) > 0 AND source_lang = %s AND target_lang = %s", (text, source_lang, target_lang))
     result = cur.fetchall()
     cur.close()
     conn.close()

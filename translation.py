@@ -24,6 +24,7 @@ class TranslationService:
         'french': 'fr',
         'spanish': 'es',
         'german': 'de',
+        'thai': 'th',
         # Add more mappings as needed
     }
 

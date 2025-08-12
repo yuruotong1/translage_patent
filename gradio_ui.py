@@ -86,7 +86,8 @@ def create_interface():
     # Define language options
     language_options = [
         "English",
-        "Chinese"
+        "Chinese",
+        "Thai"
     ]
     
     # Define translation type options
