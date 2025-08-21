@@ -1,8 +1,8 @@
-# api_key = "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"
-# base_url = "https://openrouter.ai/api/v1"
-api_key = "sk-ZB24q2CI870KOkrGEb2a42DdF5Bc417c996337F6Ad89013c"
-base_url = "http://cn.api.openai-next.com/v1"
-model = "gemini-2.0-flash-exp"
+api_key = "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"
+base_url = "https://openrouter.ai/api/v1"
+# api_key = "sk-ZB24q2CI870KOkrGEb2a42DdF5Bc417c996337F6Ad89013c"
+# base_url = "http://cn.api.openai-next.com/v1"
+model = "google/gemini-2.0-flash-001"
 
 
 term_prompt = """
@@ -24,9 +24,13 @@ term_prompt = """
 
 
 translation_prompt = """
-参考以下术语翻译：
+## 任务要求
+请将用户给出的文本翻译为{target_language}，只输出译文，不要输出任何其他内容。
 
+## 术语表
 {ref_text}
 
-请将用户给出的文本翻译为{target_language}，只输出译文，不要输出任何其他内容：
+## 注意
+- 请严格依据术语表中的术语进行输出，即便你认为其可能存在错误，也需严格遵循术语表内容执行。
+
 """

@@ -14,17 +14,19 @@ import logging
 import asyncio
 
 from translation import TranslationService
+from glossary_manager import GlossaryManager
 
 logger = logging.getLogger(__name__)
 
 class WordTranslationService:
     """Word document translation service preserving format"""
     
-    def __init__(self, api_key: str, base_url: str = "https://openrouter.ai/api/v1"):
+    def __init__(self, api_key: str, base_url: str = "https://openrouter.ai/api/v1", glossary_manager=None):
         self.api_key = api_key
         self.base_url = base_url
+        self.glossary_manager = glossary_manager or GlossaryManager()
         
-        self.translator = TranslationService(api_key, base_url)
+        self.translator = TranslationService(api_key, base_url, self.glossary_manager)
         
         # 并发配置
         self.MAX_WORKERS = 100
@@ -312,10 +314,7 @@ class WordTranslationService:
                     inserted_para = self.insert_translation_simple(original_para, translated_text)
                     if inserted_para:
                         # 获取术语的source_type信息
-                        from extraction_term import find_text_in_db
-                        from translation import TranslationService
-                        translation_service = TranslationService("", "")
-                        _, source_types = find_text_in_db(orig, src_lang=source_language)
+                        _, source_types = self.glossary_manager.find_terms_in_text(orig)
                         
                         # 需要高亮的原文术语（仅用户上传的）
                         user_terms = [term for term in references.keys() if source_types.get(term) == 'usr']
@@ -340,10 +339,7 @@ class WordTranslationService:
                         run.font.color.rgb = docx.shared.RGBColor(255, 0, 0)
                     
                     # 获取术语的source_type信息
-                    from extraction_term import find_text_in_db
-                    from translation import TranslationService
-                    translation_service = TranslationService("", "")
-                    _, source_types = find_text_in_db(orig, src_lang=source_language)
+                    _, source_types = self.glossary_manager.find_terms_in_text(orig)
                     
                     # 高亮原文单元格中的术语（仅用户上传的）
                     if para_idx < len(cell.paragraphs):

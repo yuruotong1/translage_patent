@@ -1,35 +1,17 @@
+version: '3.8'
+
 services:
   translation-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: word-translation-service
+    build: .
     ports:
       - "7888:7888"
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
-      - OMP_NUM_THREADS=4
-# Stanza resources removed - using Gemini 2.0 instead
       - ENV=production
     volumes:
-      # Mount cache directory (stanza models no longer needed)
-      - ./cache:/app/cache
-      # Mount for temporary files
-      - translation_temp:/tmp
-    gpus: all
-    restart: always
-    networks:
-      - translate
-    shm_size: 8g
-
-volumes:
-  translation_temp:
-    driver: local
-
-networks:
-  translate:
-    name: translate
-    external: true
-    driver: bridge
+      - ./temp:/app/temp  # For temporary files
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7888"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -1,6 +1,6 @@
-psycopg2-binary
 openai
-langdetect
 python-docx
 gradio
 docx2txt
+pandas
+openpyxl
