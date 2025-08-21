@@ -1,4 +1,4 @@
-api_key = "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"
+api_key = "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"
 base_url = "https://openrouter.ai/api/v1"
 # api_key = "sk-ZB24q2CI870KOkrGEb2a42DdF5Bc417c996337F6Ad89013c"
 # base_url = "http://cn.api.openai-next.com/v1"

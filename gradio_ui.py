@@ -3,7 +3,7 @@ import asyncio
 import os
 import tempfile
 import shutil
-import torch
+
 from word_translation_service import WordTranslationService
 from glossary_manager import GlossaryManager
 from prompt import api_key, base_url

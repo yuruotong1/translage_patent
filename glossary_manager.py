@@ -49,7 +49,6 @@ class GlossaryManager:
                     ],
                     response_format=TERM_EXTRACTION_SCHEMA
                 )
-                print(response.choices[0].message.content)
                 result = json.loads(response.choices[0].message.content)
                 return result
             except Exception as e:

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Startup script for Word Translation Service with optimized GPU management
+Startup script for Word Translation Service
 """
 import multiprocessing as mp
 
 import os
 import sys
-import torch
+
 import logging
 
 # Set up logging
@@ -14,24 +14,15 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 def setup_environment():
-    """Set up environment variables for optimal GPU usage"""
+    """Set up environment variables"""
     mp.set_start_method("spawn", force=True) 
-    os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
     os.environ['OMP_NUM_THREADS'] = '4'
-    os.environ['CUDA_LAUNCH_BLOCKING'] = '0'
     
 
 def main():
     """Main startup function"""
     # Display system information
     logger.info(f"Python version: {sys.version}")
-    logger.info(f"PyTorch version: {torch.__version__}")
-    logger.info(f"CUDA version: {torch.version.cuda}")
-    logger.info(f"GPU count: {torch.cuda.device_count()}")
-    # logger.info(f"GPU name: {torch.cuda.get_device_name(0)}")
-   
-    logger.info(f"GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
-    logger.info(f"GPU is available: {torch.cuda.is_available()}")
     logger.info("Starting Word Translation Service...")
     
     # Setup environment

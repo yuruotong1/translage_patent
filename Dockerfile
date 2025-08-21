@@ -1,5 +1,5 @@
-# Use PyTorch official image with CUDA support
-FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
+# Use official Python image
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
@@ -10,8 +10,7 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install -r requirements.txt
 
-# # Install PyTorch with CUDA support (compatible with CUDA 12.x)
-# RUN pip3 install --break-system-packages torch torchvision
+
 
 # Copy application code
 COPY . .
