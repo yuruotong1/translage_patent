@@ -7,6 +7,8 @@ services:
       - "7888:7888"
     environment:
       - ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
     volumes:
       - ./temp:/app/temp  # For temporary files
     restart: unless-stopped
