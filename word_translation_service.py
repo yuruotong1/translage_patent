@@ -243,7 +243,6 @@ class WordTranslationService:
 
     async def process_document_dual_output(self, file_path: str, contrast_output_path: str, 
                                    translation_only_output_path: str,
-                                   source_language: str = "English",
                                    target_language: str = "Chinese") -> List[Dict]:
         """处理文档并生成两个输出：对照翻译和仅译文"""
  
@@ -274,7 +273,7 @@ class WordTranslationService:
                     
         # 翻译所有文本
         texts = [item[2] for item in to_translate]
-        translated_results = await self.translator.translate_texts_parallel(texts, source_language, target_language)
+        translated_results = await self.translator.translate_texts_parallel(texts, target_language)
         
         # 生成仅译文文档
         translation_only_doc = docx.Document(file_path)
@@ -313,19 +312,15 @@ class WordTranslationService:
                     original_para = contrast_doc.paragraphs[paragraph_idx]
                     inserted_para = self.insert_translation_simple(original_para, translated_text)
                     if inserted_para:
-                        # 获取术语的source_type信息
-                        _, source_types = self.glossary_manager.find_terms_in_text(orig)
-                        
-                        # 需要高亮的原文术语（仅用户上传的）
-                        user_terms = [term for term in references.keys() if source_types.get(term) == 'usr']
-                        if user_terms:
-                            self.highlight_terms_by_run(original_para, user_terms)
+                        # 高亮所有在术语表中找到的术语
+                        if references:
+                            self.highlight_terms_by_run(original_para, list(references.keys()))
 
                         if isinstance(inserted_para, Paragraph):
-                            # 需要高亮的译文术语（仅用户上传的）
-                            user_translated_terms = [references[term] for term in user_terms]
-                            if user_translated_terms:
-                                self.highlight_terms_by_run(inserted_para, user_translated_terms)
+                            # 高亮译文中对应的术语
+                            translated_terms = list(references.values())
+                            if translated_terms:
+                                self.highlight_terms_by_run(inserted_para, translated_terms)
                         translated_paragraphs.append({'original': orig, 'translated': translated_text})
             elif typ == 'table_cell':
                 table_idx, row_idx, cell_idx, para_idx = info
@@ -338,15 +333,10 @@ class WordTranslationService:
                     for run in trans_para.runs:
                         run.font.color.rgb = docx.shared.RGBColor(255, 0, 0)
                     
-                    # 获取术语的source_type信息
-                    _, source_types = self.glossary_manager.find_terms_in_text(orig)
-                    
-                    # 高亮原文单元格中的术语（仅用户上传的）
-                    if para_idx < len(cell.paragraphs):
+                    # 高亮原文单元格中的术语
+                    if para_idx < len(cell.paragraphs) and references:
                         para_obj = cell.paragraphs[para_idx]
-                        user_terms = [term for term in references.keys() if source_types.get(term) == 'usr']
-                        if user_terms:
-                            self.highlight_terms_by_run(para_obj, user_terms)
+                        self.highlight_terms_by_run(para_obj, list(references.keys()))
             
                     translated_paragraphs.append({'original': orig, 'translated': translated_text})
         
@@ -376,20 +366,26 @@ class WordTranslationService:
             return
         # Work on a copy because we're going to mutate paragraph runs
         for run in list(paragraph.runs):
-            text = (run.text or "").lower()
-            matches = list(term_pattern.finditer(text))
+            original_text = run.text or ""
+            text_for_matching = original_text.lower() if case_insensitive else original_text
+            matches = list(term_pattern.finditer(text_for_matching))
             if not matches:
                 run.font.highlight_color = None
+                continue
             segments: List[Tuple[str, bool]] = []  # (text, should_highlight)
             cursor = 0
             for m in matches:
                 if m.start() > cursor:
-                    segments.append((text[cursor:m.start()], False))
-                segments.append((text[m.start():m.end()], True))
+                    segments.append((original_text[cursor:m.start()], False))
+                segments.append((original_text[m.start():m.end()], True))
                 cursor = m.end()
-            if cursor < len(text):
-                segments.append((text[cursor:], False))
+            if cursor < len(original_text):
+                segments.append((original_text[cursor:], False))
 
+            # Check if segments is empty (shouldn't happen, but safety check)
+            if not segments:
+                continue
+                
             # Replace the original run with the first segment
             first_text, should_highlight = segments[0]
             run.text = first_text
@@ -433,7 +429,6 @@ class WordTranslationService:
     
     async def extract_and_translate_doc(self, file_path: str, contrast_output_path: str, 
                                 translation_only_output_path: str,
-                                source_language: str = "English",
                                 target_language: str = "Chinese") -> List[Dict]:
         """从doc文件中提取文本并生成两个翻译文档"""
         try:
@@ -446,7 +441,7 @@ class WordTranslationService:
                 return []
             
             # 并行翻译所有段落
-            translated_texts = await self.translator.translate_texts_parallel(paragraphs, source_language, target_language)
+            translated_texts = await self.translator.translate_texts_parallel(paragraphs, target_language)
             
             # 创建对照翻译文档
             contrast_doc = docx.Document()

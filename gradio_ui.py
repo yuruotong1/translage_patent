@@ -14,7 +14,7 @@ class GradioTranslationApp:
         self.glossary_manager = GlossaryManager()
         self.translator = WordTranslationService(api_key, base_url, self.glossary_manager)
         
-    async def translate_document(self, file_path, source_lang, target_lang, translation_type):
+    async def translate_document(self, file_path, target_lang, translation_type):
         """Translate document and return output file paths"""
         # Create temporary directory for outputs
         temp_dir = tempfile.mkdtemp()
@@ -35,7 +35,6 @@ class GradioTranslationApp:
                 file_path, 
                 contrast_output, 
                 translation_only_output,
-                source_lang, 
                 target_lang
             )
         elif file_ext == '.doc':
@@ -44,7 +43,6 @@ class GradioTranslationApp:
                 file_path,
                 contrast_output,
                 translation_only_output,
-                source_lang,
                 target_lang
             )
         else:
@@ -57,7 +55,7 @@ class GradioTranslationApp:
             return translation_only_output, f"Translation completed! {len(results)} paragraphs processed."
             
     
-    def sync_translate_document(self, file, source_lang, target_lang, translation_type):
+    def sync_translate_document(self, file, target_lang, translation_type):
         """Synchronous wrapper for the async translation function"""
         if file is None:
             return None, "Please upload a document first."
@@ -67,7 +65,7 @@ class GradioTranslationApp:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             output_file, message = loop.run_until_complete(
-                self.translate_document(file.name, source_lang, target_lang, translation_type)
+                self.translate_document(file.name, target_lang, translation_type)
             )
             loop.close()
             
@@ -81,7 +79,7 @@ class GradioTranslationApp:
             logging.error(f"Error: {traceback.format_exc()}")
             return None, f"Error: {str(e)}"
     
-    def sync_generate_glossary(self, file, source_lang, target_lang):
+    def sync_generate_glossary(self, file, target_lang):
         """Generate glossary from uploaded document (synchronous wrapper)"""
         if file is None:
             return None, "Please upload a document first."
@@ -113,7 +111,7 @@ class GradioTranslationApp:
                 asyncio.set_event_loop(loop)
                 try:
                     return loop.run_until_complete(
-                        self.glossary_manager.generate_glossary_from_text(text, source_lang, target_lang)
+                        self.glossary_manager.generate_glossary_from_text(text, target_lang)
                     )
                 finally:
                     loop.close()
@@ -160,7 +158,94 @@ def create_interface():
     language_options = [
         "english",
         "chinese",
-        "thai"
+        "thai",
+        "arabic",
+        "spanish",
+        "french",
+        "german",
+        "italian",
+        "portuguese",
+        "russian",
+        "japanese",
+        "korean",
+        "vietnamese",
+        "hindi",
+        "urdu",
+        "bengali",
+        "turkish",
+        "persian",
+        "hebrew",
+        "dutch",
+        "swedish",
+        "norwegian",
+        "danish",
+        "finnish",
+        "polish",
+        "czech",
+        "hungarian",
+        "romanian",
+        "bulgarian",
+        "croatian",
+        "serbian",
+        "slovenian",
+        "slovak",
+        "lithuanian",
+        "latvian",
+        "estonian",
+        "greek",
+        "ukrainian",
+        "belarusian",
+        "georgian",
+        "armenian",
+        "azerbaijani",
+        "kazakh",
+        "uzbek",
+        "kyrgyz",
+        "tajik",
+        "mongolian",
+        "burmese",
+        "khmer",
+        "lao",
+        "nepali",
+        "sinhala",
+        "tamil",
+        "telugu",
+        "malayalam",
+        "kannada",
+        "gujarati",
+        "punjabi",
+        "marathi",
+        "indonesian",
+        "malay",
+        "tagalog",
+        "swahili",
+        "amharic",
+        "yoruba",
+        "igbo",
+        "hausa",
+        "zulu",
+        "afrikaans",
+        "xhosa",
+        "sotho",
+        "tswana",
+        "sesotho",
+        "luxembourgish",
+        "icelandic",
+        "maltese",
+        "irish",
+        "welsh",
+        "scots gaelic",
+        "basque",
+        "catalan",
+        "galician",
+        "corsican",
+        "breton",
+        "frisian",
+        "albanian",
+        "macedonian",
+        "bosnian",
+        "montenegrin",
+        "moldovan"
     ]
     
     # Define translation type options
@@ -199,12 +284,7 @@ def create_interface():
                             type="filepath"
                         )
                         
-                        glossary_source_lang = gr.Dropdown(
-                            choices=language_options,
-                            value="english",
-                            label="Source Language",
-                            info="Language of the original document"
-                        )
+
                         
                         glossary_target_lang = gr.Dropdown(
                             choices=language_options,
@@ -238,7 +318,7 @@ def create_interface():
                             """
                             **Instructions:**
                             1. Upload your document
-                            2. Select source and target languages
+                            2. Select target language (source will be auto-detected)
                             3. Click "Generate Glossary" to extract terms
                             4. Download the Excel file
                             5. Edit the glossary as needed
@@ -259,12 +339,7 @@ def create_interface():
                             type="filepath"
                         )
                         
-                        source_lang = gr.Dropdown(
-                            choices=language_options,
-                            value="english",
-                            label="Source Language",
-                            info="Language of the original document"
-                        )
+
                         
                         target_lang = gr.Dropdown(
                             choices=language_options,
@@ -323,7 +398,7 @@ def create_interface():
         # Glossary generation
         generate_glossary_btn.click(
             fn=app.sync_generate_glossary,
-            inputs=[glossary_file_input, glossary_source_lang, glossary_target_lang],
+            inputs=[glossary_file_input, glossary_target_lang],
             outputs=[glossary_download, glossary_status],
             show_progress=True
         )
@@ -339,7 +414,7 @@ def create_interface():
         # Document translation
         translate_btn.click(
             fn=app.sync_translate_document,
-            inputs=[file_input, source_lang, target_lang, translation_type],
+            inputs=[file_input, target_lang, translation_type],
             outputs=[download_file, status_text],
             show_progress=True
         )
@@ -352,7 +427,7 @@ def create_interface():
             **For Glossary Generation:**
             1. Go to "Generate Glossary" tab
             2. Upload your document
-            3. Select source and target languages  
+            3. Select target language (source language will be auto-detected)
             4. Click "Generate Glossary" and wait for processing
             5. Download the Excel file and edit as needed
             
@@ -360,7 +435,7 @@ def create_interface():
             1. Go to "Translate Document" tab
             2. Upload your document to translate
             3. (Optional) Upload your edited glossary Excel file (it will load automatically)
-            4. Select languages and output type
+            4. Select target language and output type (source language will be auto-detected)
             5. Click "Translate Document" and wait for processing
             6. Download the translated result
             

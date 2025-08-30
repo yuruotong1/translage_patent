@@ -19,16 +19,15 @@ class TranslationService:
         self.MAX_WORKERS = 100
         self.glossary_manager = glossary_manager
         
-    async def translate_text_single(self, text: str, source_language: str, target_language: str, max_retries=3) -> tuple[str, dict]:
+    async def translate_text_single(self, text: str, target_language: str, max_retries=3) -> tuple[str, dict]:
         """Single text translation function with client instance support and 15-second timeout retry.
         Returns a tuple of (translated_text, references_dict).
         """
         references = {}
-        source_types = {}
         
         # Use glossary manager if available
         if self.glossary_manager:
-            references, source_types = self.glossary_manager.find_terms_in_text(text)
+            references = self.glossary_manager.find_terms_in_text(text)
         
         if references:
             ref_text = "\n".join([f"{src} -> {tgt}" for src, tgt in references.items()])
@@ -77,7 +76,7 @@ class TranslationService:
                 await asyncio.sleep(2 ** attempt)
             
     
-    async def translate_texts_parallel(self, texts: List[str], source_language: str, target_language: str) -> List[tuple[str, dict]]:
+    async def translate_texts_parallel(self, texts: List[str], target_language: str) -> List[tuple[str, dict]]:
         """Parallel translation of multiple texts. Returns list of (translated_text, references_dict) in input order."""
         if not texts:
             return []
@@ -87,7 +86,7 @@ class TranslationService:
         # 开始翻译
         async def translate_task(index, text):
             async with sem:
-                translated_text, references = await self.translate_text_single(text, source_language, target_language)
+                translated_text, references = await self.translate_text_single(text, target_language)
                 logger.info(f"Completed translation {index + 1}/{len(texts)}")
                 return index, translated_text, references
             

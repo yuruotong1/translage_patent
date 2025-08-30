@@ -66,8 +66,8 @@ class GlossaryManager:
         
         return []
 
-    async def generate_glossary_from_text(self, text: str, src_lang: str, tgt_lang: str) -> List[Dict[str, str]]:
-        """Generate glossary from text using AI extraction"""
+    async def generate_glossary_from_text(self, text: str, tgt_lang: str) -> List[Dict[str, str]]:
+        """Generate glossary from text using AI extraction (auto-detect source language)"""
         terms = await self.extract_terms_with_gemini(text, tgt_lang)
         return terms
 
@@ -97,7 +97,6 @@ class GlossaryManager:
         """Load glossary from Excel file and return as dictionary"""
         try:
             df = pd.read_excel(excel_path, engine='openpyxl')
-            
             # Check if required columns exist
             required_columns = ['Source Content', 'Target Content']
             if not all(col in df.columns for col in required_columns):
@@ -118,21 +117,17 @@ class GlossaryManager:
             logger.error(f"Error loading glossary from Excel: {e}")
             raise
 
-    def find_terms_in_text(self, text: str) -> Tuple[Dict[str, str], Dict[str, str]]:
+    def find_terms_in_text(self, text: str) -> Dict[str, str]:
         """Find terms from loaded glossary in the given text"""
         found_translations = {}
-        source_types = {}
         
         for source_text, target_text in self.glossary_dict.items():
             if source_text.lower() in text.lower():
                 found_translations[source_text] = target_text
-                source_types[source_text] = 'usr'  # All loaded terms are user terms
         
-        return found_translations, source_types
+        return found_translations
 
-    def clear_glossary(self):
-        """Clear the current glossary"""
-        self.glossary_dict.clear()
+
 
     def get_glossary_size(self) -> int:
         """Get the number of terms in current glossary"""
